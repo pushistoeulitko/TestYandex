@@ -1,22 +1,18 @@
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.interactions.Actions;
 import org.testng.Assert;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
-import org.testng.asserts.Assertion;
+import org.testng.annotations.*;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import static org.openqa.selenium.Keys.*;
 
 public class TestClass {
     static WebDriver driver;
 
-    @BeforeTest
+    @BeforeMethod
     public void signInTest() {
         System.setProperty("webdriver.chrome.driver", "C:\\Windows\\System32\\chromedriver.exe");
         driver = new ChromeDriver();
@@ -44,13 +40,6 @@ public class TestClass {
         driver.findElement(By.xpath(name)).click();
     }
 
-   // String x = driver.findElement(By.xpath("//span[@class='mail-NestedList-Item-Info-Link-Text']")).getText();
-  // завести глобальную переменную
-  // public static void checkInbox {
-   // clickItem("//a[@href='#sent']/span[@class='mail-NestedList-Item-Name']");
-   // String n0 = driver.findElement(By.xpath("//a[@href='#sent']/span[@class='mail-NestedList-Item-Info-Extras']")).getText();
-
-
     @Test(description = "Проверка и выставление русского языка")
     // работает
     public void switchOverLanguageTestRu() {
@@ -58,7 +47,7 @@ public class TestClass {
         clickItem("//a[@class='mail-SettingsPopup__title']/span");
 
         String languageRu = driver.findElement(By.xpath("//span[@class='b-selink__link mail-Settings-Lang']")).getText();
-        if (! languageRu.equals("Русский")) {
+        if (!languageRu.equals("Русский")) {
             clickItem("//span[contains(@class,'mail-Settings-Lang_arrow')]");
             clickItem("//a[@data-params='lang=ru']");
         }
@@ -78,7 +67,7 @@ public class TestClass {
         clickItem("//a[@class='mail-SettingsPopup__title']/span");
 
         String languageEn = driver.findElement(By.xpath("//span[@class='b-selink__link mail-Settings-Lang']")).getText();
-        if (! languageEn.equals("English")) {
+        if (!languageEn.equals("English")) {
             clickItem("//span[contains(@class,'mail-Settings-Lang_arrow')]");
             clickItem("//a[@data-params='lang=en']");
         }
@@ -91,21 +80,35 @@ public class TestClass {
         Assert.assertEquals(languageEn1, "English");
     }
 
-    @Test (description ="Удалить сообщение клавишей делит в класиватуры")
+    @Test(description = "Удалить сообщение клавишей делит в класиватуры")
+    // работает
     public void deletingMessagesTestWithoutClick() {
-        List<WebElement> chk = driver.findElements(By.xpath("//span[@class='_nb-checkbox-flag _nb-checkbox-normal-flag']"));
-        for (WebElement webElement : chk) {
-            webElement.click();
-            //хз как удалять клавишей
+        String x = driver.findElement(By.xpath("//span[@class='mail-NestedList-Item-Info-Link-Text']")).getText();
+        List<WebElement> elem = driver.findElements(By.xpath("//span[@class='_nb-checkbox-flag _nb-checkbox-normal-flag']"));
+        for (WebElement Element : elem) {
+            Element.click();
         }
-        driver.findElement(By.xpath("//input[@class='textinput__control']")).sendKeys(Keys.DELETE);
+
+        Actions action = new Actions(driver);
+        action.sendKeys(DELETE).build().perform();
+        clickItem("//button[contains(@class, 'js-confirm-mops')]");
+
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        String y = driver.findElement(By.xpath("//span[@class='mail-NestedList-Item-Info-Link-Text']")).getText();
+        System.out.println(x + " " + y);
+        Assert.assertNotEquals(x, y);
     }
 
-    @Test (description ="Удалить сообщение кликнув на значок удалить")
+    @Test(description = "Удалить сообщение кликнув на значок удалить")
     // работает
     public void deletingMessagesTestWithClick() {
-       //по одному
-       // clickItem("//input[@id='nb-checkbox_0']/following-sibling::span[contains(@class,'_nb-checkbox-normal-flag')]");
+        //по одному
+        // clickItem("//input[@id='nb-checkbox_0']/following-sibling::span[contains(@class,'_nb-checkbox-normal-flag')]");
         String x = driver.findElement(By.xpath("//span[@class='mail-NestedList-Item-Info-Link-Text']")).getText();
         List<WebElement> elem = driver.findElements(By.xpath("//span[@class='_nb-checkbox-flag _nb-checkbox-normal-flag']"));
         elem.forEach(WebElement::click);
@@ -122,7 +125,7 @@ public class TestClass {
         Assert.assertNotEquals(x, y);
     }
 
-    @Test (description ="Попытка удалить сообщения не выделяя чекбоксы")
+    @Test(description = "Попытка удалить сообщения не выделяя чекбоксы")
     // работает
     public void noDeletingMessagesTestWithClick() {
         String x = driver.findElement(By.xpath("//span[@class='mail-NestedList-Item-Info-Link-Text']")).getText();
@@ -138,31 +141,29 @@ public class TestClass {
         Assert.assertEquals(x, y);
     }
 
-    @Test (description = "Отправка сообщения себе")
+    @Test(description = "Отправка сообщения себе")
     public void sendingMessageTrueEmail() {
-        //не кликает
         clickItem("//a[@href='#sent']/span[@class='mail-NestedList-Item-Name']");
-        String n0 = driver.findElement(By.xpath("//a[@href='#sent']/span[@class='mail-NestedList-Item-Info-Extras']")).getText();
-
         try {
-            Thread.sleep(5000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        String n0 = driver.findElement(By.xpath("//a[@href='#sent']//span[@class='mail-NestedList-Item-Info-Extras']")).getText();
+
         clickItem("//a[contains(@class,'js-main-action-compose')]");
         driver.findElement(By.xpath("//div[contains(@class,'tst-field-to')]//div[@class='composeYabbles']")).sendKeys("pushist0eulitko@yandex.ru");
         clickItem("//div/button[contains(@class,'ComposeControlPanelButton-Button_action')]");
-//алерт не дает перейти сразу
+        clickItem("//div [@class='ComposeDoneScreen-Actions']/a[@href='#inbox']"); //вернуться в почту
+        clickItem("//a[@href='#sent']/span[@class='mail-NestedList-Item-Name']");//тыкнуть на отправленные
         try {
-            Thread.sleep(30000);
+            Thread.sleep(8000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        clickItem("//a[@href='#inbox']"); //вернуться в почту
-        clickItem("//a[@href='#sent']/span[@class='mail-NestedList-Item-Name']");//тыкнуть на отправленные
-        String n = driver.findElement(By.xpath("//a[@href='#sent']/span[@class='mail-NestedList-Item-Info-Extras']")).getText(); //количество отправленных
+        String n = driver.findElement(By.xpath("//a[@href='#sent']//span[@class='mail-NestedList-Item-Info-Extras']")).getText(); //количество отправленных
+        System.out.println(n0 + " " + n);
         Assert.assertNotEquals(n0, n);
-        //проверка на не равно не исключает удаление
     }
 
     @Test(description = "Отправка сообщения по неверному адресу")
@@ -175,18 +176,18 @@ public class TestClass {
         Assert.assertEquals(message, "Проверьте получателя");
     }
 
-    @Test (description ="Отправка сообщения по пустому адресу")
+    @Test(description = "Отправка сообщения по пустому адресу")
     // работает
     public void clickSendMessageButton() {
         clickItem("//a[contains(@class,'js-main-action-compose')]");
         clickItem("//div/button[contains(@class,'ComposeControlPanelButton-Button_action')]");
-        String message =driver.findElement(By.xpath("//div[@class='ComposeConfirmPopup-Title']/span")).getText();
+        String message = driver.findElement(By.xpath("//div[@class='ComposeConfirmPopup-Title']/span")).getText();
         Assert.assertEquals(message, "Письмо не отправлено");
     }
 
-    @AfterTest
+    @AfterMethod
     public void exit() {
-       driver.quit();
+        driver.close();
     }
 }
 
