@@ -26,7 +26,7 @@ public class TestClass {
         driver.findElement(By.xpath(adress)).sendKeys(sent);
     }
 
-    public static void waitupdate(long i) {
+    public static void waitUpdate(long i) {
         try {
             Thread.sleep(i);
         } catch (InterruptedException e) {
@@ -35,20 +35,20 @@ public class TestClass {
     }
 
     public static String howManyLettersSent() { //удаленные
-        clickItem("//a[@href='#sent']//span[@class='mail-NestedList-Item-Name']");
-        waitupdate(5000);
-        String lettersSent = driver.findElement(By.xpath("//a[@href='#sent']//span[@class='mail-NestedList-Item-Info-Extras']")).getText();
-        return lettersSent;
+        waitUpdate(3000);
+        //clickItem("//a[@href='#sent']//span[@class='mail-NestedList-Item-Name']");
+        clickItem("//span[text()='Отправленные']");
+        waitUpdate(3000);
+        return driver.findElement(By.xpath("//a[@href='#sent']//span[@class='mail-NestedList-Item-Info-Extras']")).getText();
     }
 
     public static String howManyLettersDelete() { //отправленные
-        clickItem("//a[@href='#trash']//span[@class='mail-NestedList-Item-Name']");
-        waitupdate(5000);
-        String lettersDelete = driver.findElement(By.xpath("//a[@href='#trash']//span[@class='mail-NestedList-Item-Info-Extras']")).getText();
-        return lettersDelete;
+        waitUpdate(5000);
+        //clickItem("//a[@href='#trash']//span[@class='mail-NestedList-Item-Name']");
+        clickItem("//span[text()='Удалённые']");
+        waitUpdate(5000);
+        return driver.findElement(By.xpath("//a[@href='#trash']//span[@class='mail-NestedList-Item-Info-Extras']")).getText();
     }
-
-    //глобальные переменные
 
     public static void settingLanguage() {
         clickItem("//button[contains(@class,'mail-SettingsButton')]"); //зайти в настройки
@@ -59,7 +59,7 @@ public class TestClass {
         System.setProperty("webdriver.chrome.driver", "C:\\Windows\\System32\\chromedriver.exe");
         driver = new ChromeDriver();
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        driver.manage().window().setSize(new Dimension(920, 800));
+        driver.manage().window().setSize(new Dimension(1920, 1080));
     }
 
     @BeforeMethod
@@ -91,47 +91,65 @@ public class TestClass {
     }
 
     public void checkLanguage(String needLanguage) {
-        waitupdate(3000);
+        waitUpdate(3000);
         String language = driver.findElement(By.xpath("//span[@class='b-selink__link mail-Settings-Lang']")).getText();
         Assert.assertEquals(language, needLanguage);
     }
 
     public void selectCheckbox() {
+        clickItem("//a[@href='#inbox']//span[@class='mail-NestedList-Item-Name']");
         List<WebElement> elem = driver.findElements(By.xpath("//span[@class='_nb-checkbox-flag _nb-checkbox-normal-flag']"));
         elem.forEach(WebElement::click);
+    }
+
+    public void selectCheckbox2() {
+        clickItem("//a[@href='#inbox']//span[@class='mail-NestedList-Item-Name']");
+        clickItem("//div[contains(@class, 'mail-Toolbar-Item_main-select-all')]//span[@class='checkbox_view']");
     }
 
     public void pressDelete() {
         Actions action = new Actions(driver);
         action.sendKeys(DELETE).build().perform();
+        confirmDelete();
     }
 
     public void clickDelete() {
         clickItem("//div[contains(@data-key, 'delete')]");
+        confirmDelete();
     }
+    //span[@class ='mail-Toolbar-Item-Text js-toolbar-item-title js-toolbar-item-title-delete']
 
     public void confirmDelete() {
-        clickItem("//button[contains(@class, 'js-confirm-mops')]");
+        if (driver.findElement(By.xpath("//button[contains(@class, 'js-confirm-mops')]")).isDisplayed()){
+            clickItem("//button[contains(@class, 'js-confirm-mops')]");
+        }
+        //}
     }
 
-    public void writeMessage(String ToName) {
+    public void writeMessage(String toName) {
         clickItem("//a[contains(@class,'js-main-action-compose')]");
-        sendKeys("//div[contains(@class,'tst-field-to')]//div[@class='composeYabbles']", ToName);
+        sendKeys("//div[contains(@class,'tst-field-to')]//div[@class='composeYabbles']", toName);
         clickItem("//div/button[contains(@class,'ComposeControlPanelButton-Button_action')]");
+        waitUpdate(5000);
     }
 
-    public void returnToMail() {
-        clickItem("//div [@class='ComposeDoneScreen-Actions']/a[@href='#inbox']");
-        waitupdate(3000);
+    public String getTextPOpUp() {
+        String x = driver.findElement(By.xpath("//div[@class='ComposeConfirmPopup-Title']/span")).getText();
+        return x;
+    }
+
+    public String getTextPOpUp2() {
+        String x = driver.findElement(By.xpath("//div[@class='ComposeDoneScreen-Title']/span")).getText();
+        return x;
     }
 
     public void assertionEverything(String x, String y) {
-        System.out.println(x + " " + y);
+        waitUpdate(5000);
         Assert.assertEquals(x, y);
     }
 
     public void assertionNotEverithing(String x, String y) {
-        System.out.println(x + " " + y);
+        waitUpdate(5000);
         Assert.assertNotEquals(x, y);
     }
 
@@ -159,20 +177,15 @@ public class TestClass {
         String x = howManyLettersDelete();
         selectCheckbox();
         pressDelete();
-        confirmDelete();
-        waitupdate(8000);
         String y = howManyLettersDelete();
-        System.out.println(x + " " + y);
         assertionNotEverithing(x, y);
     }
 
     @Test(description = "Удалить сообщение кликнув на значок удалить")
     public void deletingMessagesTestWithClick() {
         String x = howManyLettersDelete();
-        selectCheckbox();
+        selectCheckbox2();
         clickDelete();
-        confirmDelete();
-        //waitupdate(3000);
         String y = howManyLettersDelete();
         assertionNotEverithing(x, y);
     }
@@ -187,32 +200,26 @@ public class TestClass {
 
     @Test(description = "Отправка сообщения себе")
     public void sendingMessageTrueEmail() {
-        String n0 = howManyLettersSent();
         writeMessage("pushist0eulitko@yandex.ru");
-        returnToMail(); //вернуться в почту
-        String n = howManyLettersSent();
-        assertionNotEverithing(n0, n);
+        String x = getTextPOpUp2();
+        assertionEverything(x, "Письмо отправлено");
     }
 
     @Test(description = "Отправка сообщения по неверному адресу")
     public void sendingMessageFalseEmail() {
-        String n0 = howManyLettersSent();
         writeMessage("fxjfsjf");
-        String n = howManyLettersSent();
-        assertionEverything(n0, n);
-        //String message = driver.findElement(By.xpath("//div[@class='ComposeConfirmPopup-Title']/span")).getText();
-        // Assert.assertEquals(message, "Проверьте получателя");
+        String x = getTextPOpUp();
+        assertionEverything(x, "Проверьте получателя");
     }
 
     @Test(description = "Отправка сообщения по пустому адресу")
     public void clickSendMessageButton() {
-        String n0 = howManyLettersSent();
         writeMessage("");
-        String n = howManyLettersSent();
-        assertionEverything(n0, n);
-        //String message = driver.findElement(By.xpath("//div[@class='ComposeConfirmPopup-Title']/span")).getText();
-        //Assert.assertEquals(message, "Письмо не отправлено");
+        String x = getTextPOpUp();
+        assertionEverything(x, "Письмо не отправлено" );
     }
+
+
 
     @AfterTest
     public void exit() {
