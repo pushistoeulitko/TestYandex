@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?javac -encoding utf-8 ?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+
+<suite name="testtest">
+    <test name="testing">
+        <groups>
+            <run>
+                <include name="LanguageTest"/>
+                <include name="DeletingMessages"/>
+                <include name="SendMessage"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="pagemodels.YandexTest"/>
+        </classes>
+    </test>
+</suite>
